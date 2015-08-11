@@ -63,13 +63,37 @@ class IndexController extends AbstractActionController
 		array('controller' => 'index', 'action' => 'listar'));
 	}
 
-	public function editarAction()
-	{
-		$id = $this->params()->fromRoute("id", 0);
-		$em = $this->getServiceLocator()->get("Doctrine\ORM\EntityManager");
+    public function editarAction()
+    {
+        $id = $this->params()->fromRoute("id", 0);
+        $em = $this->getServiceLocator()->get("Doctrine\ORM\EntityManager");
 
-		$funcionario = $em->find("Application\Model\Funcionario", $id);
-		return new ViewModel(array('f' => $funcionario));
-	}	
+        $funcionario = $em->find("Application\Model\Funcionario", $id);
+        $request = $this->getRequest();
+        if($request->isPost())
+        {
+            try{
+                $nome = $request->getPost("nome");
+                $cpf = $request->getPost("cpf");
+                $salario = $request->getPost("salario");
+
+                $funcionario->setNome($nome);
+                $funcionario->setCpf($cpf);
+                $funcionario->setSalario($salario);
+
+                $em = $this->getServiceLocator()->get("Doctrine\ORM\EntityManager");
+                $em->merge($funcionario);
+                $em->flush();
+
+            }  catch (Exception $e){
+
+            }
+
+            return $this->redirect()->toRoute('application/default',
+                array('controller' => 'index', 'action' => 'listar'));
+        }
+
+        return new ViewModel(array('f' => $funcionario));
+    }
 
 }
